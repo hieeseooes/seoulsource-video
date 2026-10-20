@@ -1,0 +1,20 @@
+{
+  "name": "seoulsource-video",
+  "version": "1.0.0",
+  "description": "SeoulSource automated video rendering engine using Remotion and GitHub Actions",
+  "scripts": {
+    "start": "remotion preview",
+    "build": "remotion render SeoulSourceReel out/video.mp4",
+    "render": "remotion render"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.260",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.260"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.18",
+    "typescript": "^5.7.3"
+  }
+}

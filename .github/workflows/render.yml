@@ -1,0 +1,81 @@
+name: Render Remotion Video
+
+on:
+  workflow_dispatch:
+    inputs:
+      props:
+        description: 'JSON string of video props'
+        required: false
+        default: ''
+      composition:
+        description: 'Composition ID to render'
+        required: false
+        default: 'SeoulSourceReel'
+      output_name:
+        description: 'Output video filename'
+        required: false
+        default: 'seoulsource_video'
+  repository_dispatch:
+    types: [render_video]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  render:
+    name: Render Video on Cloud
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci || npm install
+
+      - name: Prepare Props JSON
+        id: prepare_props
+        run: |
+          PROPS_INPUT='${{ github.event.inputs.props }}'
+          if [ -n "$PROPS_INPUT" ]; then
+            echo "$PROPS_INPUT" > input-props.json
+            echo "Used props from workflow dispatch input."
+          else
+            cp props.json input-props.json
+            echo "Fallback to default props.json."
+          fi
+          cat input-props.json
+
+      - name: Render Video
+        run: |
+          mkdir -p out
+          COMP_NAME="${{ github.event.inputs.composition || 'SeoulSourceReel' }}"
+          OUT_NAME="${{ github.event.inputs.output_name || 'seoulsource_video' }}"
+          echo "Rendering $COMP_NAME to out/${OUT_NAME}.mp4..."
+          npx remotion render "$COMP_NAME" "out/${OUT_NAME}.mp4" --props="./input-props.json" --gl=angle --concurrency=2
+
+      - name: Upload Video Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.inputs.output_name || 'seoulsource_video' }}
+          path: out/*.mp4
+          retention-days: 7
+
+      - name: Create GitHub Release with Video Asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="render-${{ github.run_id }}"
+          OUT_FILE=$(ls out/*.mp4 | head -n 1)
+          echo "Creating release $TAG_NAME with file $OUT_FILE..."
+          gh release create "$TAG_NAME" "$OUT_FILE" \
+            --title "Render #${{ github.run_id }}" \
+            --notes "Automated SeoulSource video render completed successfully."
