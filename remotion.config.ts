@@ -2,5 +2,5 @@ import { Config } from '@remotion/cli/config';
 
 Config.setVideoImageFormat('jpeg');
 Config.setOverwriteOutput(true);
-Config.setQuality(85);
+Config.setJpegQuality(85);
 Config.setChromiumOpenGlRenderer('angle');
