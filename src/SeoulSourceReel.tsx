@@ -28,7 +28,7 @@ export interface ReelProps {
 
 export const defaultReelProps: ReelProps = {
   title: "Konfrontasi Rahasia di Sidang Terakhir",
-  category: "K-DRAMA INSIGHT",
+  category: "K-DRAMA RECAP",
   author: "Seola @ SeoulSource",
   scenes: [
     {
@@ -52,6 +52,80 @@ export const defaultReelProps: ReelProps = {
   ],
 };
 
+// Helper: Split title to highlight the first few hook words in vibrant golden yellow
+const renderHighlightedTitle = (title: string) => {
+  const words = title.trim().split(/\s+/);
+  if (words.length <= 2) {
+    return <span style={{ color: '#FACC15' }}>{title}</span>;
+  }
+  const highlightCount = Math.min(3, Math.ceil(words.length * 0.38));
+  const highlighted = words.slice(0, highlightCount).join(' ');
+  const remaining = words.slice(highlightCount).join(' ');
+
+  return (
+    <>
+      <span style={{ color: '#FACC15', textShadow: '0 0 25px rgba(250, 204, 21, 0.45)' }}>
+        {highlighted}{' '}
+      </span>
+      <span style={{ color: '#FFFFFF' }}>{remaining}</span>
+    </>
+  );
+};
+
+// Helper: Format subtext quotes nicely
+const renderSubtext = (text?: string) => {
+  if (!text) return null;
+  // If text contains quotes, emphasize the quote in cyan
+  if (text.includes('"')) {
+    const parts = text.split(/(".*?")/g);
+    return (
+      <div
+        style={{
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          fontSize: '26px',
+          fontWeight: 600,
+          lineHeight: 1.35,
+          color: '#E2E8F0',
+          textShadow: '0 2px 10px rgba(0,0,0,0.9)',
+        }}
+      >
+        {parts.map((p, idx) =>
+          p.startsWith('"') && p.endsWith('"') ? (
+            <span
+              key={idx}
+              style={{
+                color: '#67E8F9',
+                fontStyle: 'italic',
+                fontWeight: 700,
+                textShadow: '0 0 15px rgba(103, 232, 249, 0.35)',
+              }}
+            >
+              {p}
+            </span>
+          ) : (
+            <span key={idx}>{p}</span>
+          )
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        fontFamily: "'Plus Jakarta Sans', sans-serif",
+        fontSize: '26px',
+        fontWeight: 500,
+        lineHeight: 1.35,
+        color: '#CBD5E1',
+        textShadow: '0 2px 10px rgba(0,0,0,0.9)',
+      }}
+    >
+      {text}
+    </div>
+  );
+};
+
 const SingleScene: React.FC<{
   scene: Scene;
   sceneDurationFrames: number;
@@ -61,26 +135,26 @@ const SingleScene: React.FC<{
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Ken Burns subtle zoom & pan
-  const scale = interpolate(frame, [0, sceneDurationFrames], [1.0, 1.12], {
+  // Smooth cinematic Ken Burns scale & subtle pan
+  const scale = interpolate(frame, [0, sceneDurationFrames], [1.0, 1.09], {
     extrapolateRight: 'clamp',
   });
-  const translateY = interpolate(frame, [0, sceneDurationFrames], [0, -15], {
+  const translateY = interpolate(frame, [0, sceneDurationFrames], [0, -12], {
     extrapolateRight: 'clamp',
   });
 
-  // Entrance spring animation for text card
+  // Entrance spring animation for subtitle box
   const enterSpring = spring({
     frame,
     fps,
-    config: { damping: 15, mass: 0.7, stiffness: 120 },
+    config: { damping: 16, mass: 0.6, stiffness: 140 },
   });
 
-  const cardTranslateY = interpolate(enterSpring, [0, 1], [60, 0]);
-  const cardOpacity = interpolate(enterSpring, [0, 1], [0, 1]);
+  const subtitleY = interpolate(enterSpring, [0, 1], [30, 0]);
+  const subtitleOpacity = interpolate(enterSpring, [0, 1], [0, 1]);
 
   return (
-    <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: '#090d16' }}>
+    <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: '#05070c' }}>
       {/* Background Image with Ken Burns Effect */}
       <div
         style={{
@@ -100,110 +174,125 @@ const SingleScene: React.FC<{
         />
       </div>
 
-      {/* Cinematic Vignette / Gradients */}
+      {/* Cinematic Top & Bottom Vignettes (Actor Face Remains Clean in Center!) */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
           background:
-            'linear-gradient(180deg, rgba(7,11,20,0.85) 0%, rgba(7,11,20,0.2) 30%, rgba(7,11,20,0.3) 60%, rgba(7,11,20,0.92) 100%)',
+            'linear-gradient(180deg, rgba(3,5,10,0.92) 0%, rgba(3,5,10,0.55) 15%, rgba(3,5,10,0.05) 35%, transparent 50%)',
+          pointerEvents: 'none',
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'linear-gradient(0deg, rgba(3,5,10,0.96) 0%, rgba(3,5,10,0.85) 18%, rgba(3,5,10,0.3) 34%, transparent 48%)',
+          pointerEvents: 'none',
+        }}
+      />
+      {/* Subtle corner vignette */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          boxShadow: 'inset 0 0 160px rgba(0, 0, 0, 0.75)',
           pointerEvents: 'none',
         }}
       />
 
-      {/* Middle/Bottom Floating Caption Card (Glassmorphism) */}
+      {/* Lower-Third: Netflix / CapCut Style Subtitle Bar */}
+      {/* Positioned at bottom: 270px to stay safely above TikTok bottom description zone */}
+      {/* Right margin: 140px to stay safely away from TikTok like/comment/share icons */}
       <div
         style={{
           position: 'absolute',
-          bottom: '220px',
-          left: '48px',
-          right: '48px',
-          transform: `translateY(${cardTranslateY}px)`,
-          opacity: cardOpacity,
-          borderRadius: '24px',
-          padding: '36px 40px',
-          background: 'rgba(15, 23, 42, 0.78)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.55)',
+          bottom: '270px',
+          left: '60px',
+          right: '140px',
+          transform: `translateY(${subtitleY}px)`,
+          opacity: subtitleOpacity,
           display: 'flex',
           flexDirection: 'column',
-          gap: '16px',
+          gap: '12px',
         }}
       >
-        {/* Scene Indicator & Speaker Tag */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Micro Scene Tag */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              backgroundColor: 'rgba(0, 0, 0, 0.65)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              padding: '4px 14px',
+              borderRadius: '999px',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+            }}
+          >
             <span
               style={{
-                display: 'inline-block',
-                width: '10px',
-                height: '10px',
+                width: '6px',
+                height: '6px',
                 borderRadius: '50%',
                 backgroundColor: '#38bdf8',
-                boxShadow: '0 0 10px #38bdf8',
+                boxShadow: '0 0 8px #38bdf8',
               }}
             />
             <span
               style={{
-                fontFamily: 'system-ui, -apple-system, sans-serif',
-                fontSize: '22px',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontSize: '15px',
                 fontWeight: 700,
-                color: '#38bdf8',
-                letterSpacing: '0.08em',
+                color: '#94a3b8',
+                letterSpacing: '0.1em',
                 textTransform: 'uppercase',
               }}
             >
-              Catatan Seola
+              Scene {String(index + 1).padStart(2, '0')} / {String(totalScenes).padStart(2, '0')} • Catatan Seola
             </span>
           </div>
-
-          <span
-            style={{
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-              fontSize: '20px',
-              fontWeight: 600,
-              color: 'rgba(255, 255, 255, 0.6)',
-              backgroundColor: 'rgba(255, 255, 255, 0.08)',
-              padding: '4px 14px',
-              borderRadius: '999px',
-            }}
-          >
-            {index + 1} / {totalScenes}
-          </span>
         </div>
 
-        {/* Main Caption */}
-        {scene.caption && (
-          <div
-            style={{
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-              fontSize: '38px',
-              fontWeight: 800,
-              lineHeight: 1.25,
-              color: '#ffffff',
-              textShadow: '0 2px 10px rgba(0,0,0,0.6)',
-            }}
-          >
-            {scene.caption}
-          </div>
-        )}
+        {/* Cinematic Translucent Subtitle Pill Container */}
+        <div
+          style={{
+            backgroundColor: 'rgba(5, 8, 16, 0.72)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderRadius: '18px',
+            padding: '24px 28px',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+          }}
+        >
+          {/* Main Caption (Netflix subtitle look) */}
+          {scene.caption && (
+            <div
+              style={{
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontSize: '36px',
+                fontWeight: 800,
+                lineHeight: 1.25,
+                color: '#ffffff',
+                textShadow: '0 2px 12px rgba(0, 0, 0, 0.8)',
+                letterSpacing: '-0.02em',
+              }}
+            >
+              {scene.caption}
+            </div>
+          )}
 
-        {/* Subtext commentary */}
-        {scene.subtext && (
-          <div
-            style={{
-              fontFamily: 'system-ui, -apple-system, sans-serif',
-              fontSize: '28px',
-              fontWeight: 400,
-              lineHeight: 1.4,
-              color: 'rgba(241, 245, 249, 0.88)',
-            }}
-          >
-            {scene.subtext}
-          </div>
-        )}
+          {/* Subtext dialogue / analysis */}
+          {scene.subtext && renderSubtext(scene.subtext)}
+        </div>
       </div>
     </AbsoluteFill>
   );
@@ -230,12 +319,26 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
     return item;
   });
 
-  // Global Progress Bar (0px to 1080px)
+  // Hairline Top Progress Bar (0px to 1080px)
   const progressRatio = Math.min(1, frame / Math.max(1, durationInFrames));
   const progressBarWidth = progressRatio * 1080;
 
   return (
-    <AbsoluteFill style={{ backgroundColor: '#070b14', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <AbsoluteFill
+      style={{
+        backgroundColor: '#03050a',
+        fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+      }}
+    >
+      {/* Inject Google Fonts */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,500;0,600;0,700;0,800;0,900;1,500;1,600;1,700&display=swap');
+        * {
+          box-sizing: border-box;
+          -webkit-font-smoothing: antialiased;
+        }
+      `}</style>
+
       {/* Optional Audio Layers */}
       {musicUrl && <Audio src={musicUrl} volume={0.25} />}
       {audioUrl && <Audio src={audioUrl} volume={1.0} />}
@@ -256,114 +359,89 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
         </Sequence>
       ))}
 
-      {/* Top Header Branding & Headline (Global Overlay) */}
+      {/* Top Header: Upper-Third Hook Headline (Global Overlay) */}
+      {/* Positioned at top: 100px, right: 140px to respect TikTok safe zone */}
       <div
         style={{
           position: 'absolute',
-          top: '80px',
-          left: '48px',
-          right: '48px',
+          top: '100px',
+          left: '60px',
+          right: '140px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '18px',
+          gap: '12px',
           zIndex: 50,
         }}
       >
-        {/* Top Badges */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div
+        {/* Micro-Brand Pill: Ultra Sleek Editorial Style */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span
             style={{
-              background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
-              color: '#ffffff',
-              padding: '8px 20px',
-              borderRadius: '999px',
-              fontSize: '22px',
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: '#ef4444',
+              boxShadow: '0 0 10px #ef4444',
+              display: 'inline-block',
+            }}
+          />
+          <span
+            style={{
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              fontSize: '17px',
               fontWeight: 800,
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-              boxShadow: '0 4px 14px rgba(6, 182, 212, 0.4)',
-            }}
-          >
-            ⚡ SeoulSource
-          </div>
-
-          <div
-            style={{
-              background: 'rgba(255, 255, 255, 0.14)',
-              backdropFilter: 'blur(10px)',
+              letterSpacing: '0.14em',
               color: '#f8fafc',
-              padding: '8px 18px',
-              borderRadius: '999px',
-              fontSize: '20px',
-              fontWeight: 700,
-              letterSpacing: '0.04em',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
+              textTransform: 'uppercase',
             }}
           >
-            {category || 'K-DRAMA RECAP'}
-          </div>
+            SEOULSOURCE <span style={{ opacity: 0.35, margin: '0 6px' }}>•</span> {category || 'DRAMA INSIGHT'}
+          </span>
         </div>
 
-        {/* Headline */}
+        {/* Viral Hook Headline with Golden Yellow Highlight */}
         <div
           style={{
-            fontSize: '44px',
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontSize: '48px',
             fontWeight: 900,
-            lineHeight: 1.2,
-            color: '#ffffff',
-            textShadow: '0 4px 20px rgba(0, 0, 0, 0.8)',
-            maxWidth: '900px',
+            lineHeight: 1.15,
+            letterSpacing: '-0.025em',
+            textShadow: '0 4px 20px rgba(0, 0, 0, 0.95), 0 2px 4px rgba(0, 0, 0, 0.98)',
+            maxWidth: '860px',
           }}
         >
-          {title}
+          {renderHighlightedTitle(title)}
         </div>
       </div>
 
-      {/* Bottom Sticky Branding */}
+      {/* Minimalist Watermark at Bottom Left (Safe from TikTok sound icon) */}
       <div
         style={{
           position: 'absolute',
-          bottom: '50px',
-          left: '48px',
-          right: '48px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          bottom: '120px',
+          left: '60px',
           zIndex: 50,
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          fontSize: '18px',
+          fontWeight: 700,
+          letterSpacing: '0.04em',
+          color: 'rgba(255, 255, 255, 0.45)',
+          textShadow: '0 2px 6px rgba(0, 0, 0, 0.9)',
         }}
       >
-        <div
-          style={{
-            fontSize: '24px',
-            fontWeight: 700,
-            color: 'rgba(255, 255, 255, 0.8)',
-            textShadow: '0 2px 8px rgba(0,0,0,0.8)',
-          }}
-        >
-          @seoulsource_
-        </div>
-
-        <div
-          style={{
-            fontSize: '20px',
-            fontWeight: 600,
-            color: 'rgba(255, 255, 255, 0.6)',
-            textShadow: '0 2px 8px rgba(0,0,0,0.8)',
-          }}
-        >
-          Tonton & Simpan ↗
-        </div>
+        @seoulsource_
       </div>
 
-      {/* Sleek Bottom Progress Bar */}
+      {/* Sleek Hairline Top Progress Bar (Height: 5px) */}
       <div
         style={{
           position: 'absolute',
-          bottom: '0px',
+          top: '0px',
           left: '0px',
           width: '1080px',
-          height: '10px',
-          backgroundColor: 'rgba(255, 255, 255, 0.15)',
+          height: '5px',
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
           zIndex: 100,
         }}
       >
@@ -371,8 +449,8 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
           style={{
             height: '100%',
             width: `${progressBarWidth}px`,
-            background: 'linear-gradient(90deg, #38bdf8 0%, #ec4899 100%)',
-            boxShadow: '0 0 12px #ec4899',
+            background: 'linear-gradient(90deg, #FACC15 0%, #38BDF8 60%, #EC4899 100%)',
+            boxShadow: '0 0 12px rgba(250, 204, 21, 0.7)',
           }}
         />
       </div>
