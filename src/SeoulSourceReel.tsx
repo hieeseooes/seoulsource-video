@@ -52,20 +52,20 @@ export const defaultReelProps: ReelProps = {
   ],
 };
 
-// Helper: Format subtext quotes with Brutalist Black Pill + Acid Green Text
-const renderBrutalistSubtext = (text?: string) => {
+// Helper: Format subtext quotes with ArticleSlide styling
+const renderArticleSubtext = (text?: string) => {
   if (!text) return null;
   if (text.includes('"')) {
     const parts = text.split(/(".*?")/g);
     return (
       <div
         style={{
-          fontFamily: "'Space Grotesk', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           fontSize: '24px',
-          fontWeight: 700,
-          lineHeight: 1.35,
-          color: '#1e293b',
-          marginTop: '8px',
+          fontWeight: 600,
+          lineHeight: 1.45,
+          color: '#1a1a1a',
+          marginTop: '6px',
         }}
       >
         {parts.map((p, idx) =>
@@ -74,17 +74,20 @@ const renderBrutalistSubtext = (text?: string) => {
               key={idx}
               style={{
                 display: 'inline-block',
-                backgroundColor: '#000000',
-                color: '#ccff00',
-                padding: '3px 10px',
+                backgroundColor: '#0A0A0A',
+                color: '#00DC82',
+                padding: '4px 12px',
                 borderRadius: '4px',
-                fontWeight: 900,
-                letterSpacing: '0.01em',
+                fontFamily: "'Space Mono', monospace",
+                fontWeight: 700,
+                fontSize: '22px',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
                 margin: '2px 0',
-                boxShadow: '3px 3px 0px rgba(0,0,0,0.3)',
+                boxShadow: '3px 3px 0px #FF6B9D',
               }}
             >
-              {p}
+              {p.toUpperCase()}
             </span>
           ) : (
             <span key={idx}>{p}</span>
@@ -97,12 +100,12 @@ const renderBrutalistSubtext = (text?: string) => {
   return (
     <div
       style={{
-        fontFamily: "'Space Grotesk', sans-serif",
-        fontSize: '24px',
-        fontWeight: 600,
-        lineHeight: 1.35,
-        color: '#334155',
-        marginTop: '8px',
+        fontFamily: "'Inter', sans-serif",
+        fontSize: '23px',
+        fontWeight: 500,
+        lineHeight: 1.5,
+        color: '#2a2a2a',
+        marginTop: '6px',
       }}
     >
       {text}
@@ -131,22 +134,25 @@ const SingleScene: React.FC<{
   const popSpring = spring({
     frame,
     fps,
-    config: { damping: 11, stiffness: 220, mass: 0.5 },
+    config: { damping: 12, stiffness: 210, mass: 0.5 },
   });
 
-  const stickerScale = interpolate(popSpring, [0, 1], [0.82, 1]);
+  const stickerScale = interpolate(popSpring, [0, 1], [0.85, 1]);
   const stickerOpacity = interpolate(popSpring, [0, 1], [0, 1]);
 
+  // Subtle breathing float on sticker card
+  const floatY = Math.sin(frame / 10) * 3;
+
   return (
-    <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: '#000000' }}>
-      {/* Background Media with Raw Film Contrast */}
+    <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: '#0A0A0A' }}>
+      {/* Background Media with High Contrast */}
       <div
         style={{
           width: '100%',
           height: '100%',
           transform: `scale(${scale}) translateY(${translateY}px)`,
           transformOrigin: 'center center',
-          filter: 'contrast(1.08) saturate(1.1)',
+          filter: 'contrast(1.06) saturate(1.12)',
         }}
       >
         <Img
@@ -159,39 +165,38 @@ const SingleScene: React.FC<{
         />
       </div>
 
-      {/* Retro CRT Scanlines & Grain Subtle Overlay */}
+      {/* Halftone Dot Grid Overlay (from ArticleSlide.vue line 99-102) */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.4) 1.5px, transparent 1.5px)',
+          backgroundSize: '24px 24px',
+          opacity: 0.14,
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Top & Bottom Cinematic Vignette */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
           background:
-            'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03))',
-          backgroundSize: '100% 4px, 6px 100%',
-          pointerEvents: 'none',
-          opacity: 0.65,
-        }}
-      />
-
-      {/* Top & Bottom Cinematic Shadow (Ensures Stickers & HUD Pop) */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background:
-            'linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 14%, transparent 35%, transparent 65%, rgba(0,0,0,0.5) 82%, rgba(0,0,0,0.92) 100%)',
+            'linear-gradient(180deg, rgba(10,10,10,0.88) 0%, rgba(10,10,10,0.3) 15%, transparent 35%, transparent 62%, rgba(10,10,10,0.55) 80%, rgba(10,10,10,0.94) 100%)',
           pointerEvents: 'none',
         }}
       />
 
-      {/* Lower-Third: Neo-Brutalist Sticker Card (Catatan Seola) */}
-      {/* Positioned at bottom: 270px, right: 140px to respect TikTok safe zone */}
+      {/* Lower-Third: ArticleSlide Memo Card */}
+      {/* Safe Zone: bottom: 270px, right: 140px */}
       <div
         style={{
           position: 'absolute',
           bottom: '270px',
-          left: '54px',
+          left: '50px',
           right: '140px',
-          transform: `scale(${stickerScale}) rotate(1.2deg)`,
+          transform: `scale(${stickerScale}) translateY(${floatY}px) rotate(1.2deg)`,
           opacity: stickerOpacity,
           transformOrigin: 'bottom left',
           display: 'flex',
@@ -200,58 +205,66 @@ const SingleScene: React.FC<{
           zIndex: 40,
         }}
       >
-        {/* Brutalist Label Tag */}
+        {/* Tape Tag Label (Space Mono, uppercase) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div
             style={{
-              backgroundColor: '#ff007f',
-              color: '#ffffff',
-              border: '3px solid #000000',
-              boxShadow: '4px 4px 0px #000000',
-              fontFamily: "'Share Tech Mono', monospace",
-              fontSize: '16px',
-              fontWeight: 800,
-              letterSpacing: '0.08em',
+              backgroundColor: '#0A0A0A',
+              color: '#FFFFFF',
+              border: '3px solid #0A0A0A',
+              boxShadow: '4px 4px 0px #FF6B9D',
+              fontFamily: "'Space Mono', monospace",
+              fontSize: '15px',
+              fontWeight: 700,
+              letterSpacing: '0.06em',
               textTransform: 'uppercase',
-              padding: '4px 14px',
-              borderRadius: '2px',
+              padding: '6px 16px',
+              borderRadius: '4px',
             }}
           >
-            [ SCENE {String(index + 1).padStart(2, '0')}/{String(totalScenes).padStart(2, '0')} // CATATAN SEOLA ]
+            [ SCENE {String(index + 1).padStart(2, '0')} / {String(totalScenes).padStart(2, '0')} // CATATAN SEOLA ]
           </div>
         </div>
 
-        {/* Brutalist White Memo Card with Hard Drop Shadow */}
+        {/* Paper Card with ArticleSlide Border & Shadow */}
         <div
           style={{
-            backgroundColor: '#ffffff',
-            border: '4px solid #000000',
-            boxShadow: '8px 8px 0px #000000',
+            backgroundColor: '#FAF9F5',
+            border: '3.5px solid #0A0A0A',
+            boxShadow: '8px 8px 0px #00DC82',
             padding: '24px 28px',
-            borderRadius: '4px',
+            borderRadius: '12px',
+            position: 'relative',
             display: 'flex',
             flexDirection: 'column',
             gap: '8px',
           }}
         >
+          {/* Paper Corner Crop Ticks (from ArticleSlide.vue line 130-133) */}
+          <div style={{ position: 'absolute', top: '8px', left: '8px', width: '12px', height: '12px', borderTop: '2px solid rgba(10,10,10,0.3)', borderLeft: '2px solid rgba(10,10,10,0.3)' }} />
+          <div style={{ position: 'absolute', top: '8px', right: '8px', width: '12px', height: '12px', borderTop: '2px solid rgba(10,10,10,0.3)', borderRight: '2px solid rgba(10,10,10,0.3)' }} />
+          <div style={{ position: 'absolute', bottom: '8px', left: '8px', width: '12px', height: '12px', borderBottom: '2px solid rgba(10,10,10,0.3)', borderLeft: '2px solid rgba(10,10,10,0.3)' }} />
+          <div style={{ position: 'absolute', bottom: '8px', right: '8px', width: '12px', height: '12px', borderBottom: '2px solid rgba(10,10,10,0.3)', borderRight: '2px solid rgba(10,10,10,0.3)' }} />
+
           {/* Main Caption */}
           {scene.caption && (
             <div
               style={{
-                fontFamily: "'Space Grotesk', sans-serif",
+                fontFamily: "'Cabinet Grotesk', sans-serif",
                 fontSize: '34px',
-                fontWeight: 800,
+                fontWeight: 900,
                 lineHeight: 1.22,
-                color: '#000000',
+                color: '#0A0A0A',
                 letterSpacing: '-0.02em',
+                textTransform: 'uppercase',
               }}
             >
               {scene.caption}
             </div>
           )}
 
-          {/* Subtext with dialogue pill */}
-          {scene.subtext && renderBrutalistSubtext(scene.subtext)}
+          {/* Subtext Paragraph */}
+          {scene.subtext && renderArticleSubtext(scene.subtext)}
         </div>
       </div>
     </AbsoluteFill>
@@ -279,27 +292,42 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
     return item;
   });
 
-  // Brutalist Progress Bar Width (0px to 1080px)
+  // Progress Ratio (0 to 1)
   const progressRatio = Math.min(1, frame / Math.max(1, durationInFrames));
   const progressBarWidth = progressRatio * 1080;
 
-  // Y2K Camcorder Blinking REC indicator (blinks every 15 frames)
-  const isRecVisible = Math.floor(frame / 15) % 2 === 0;
+  // -------------------------------------------------------------
+  // 📹 MOVING Y2K OVERLAY LOGIC (DYNAMIC & ALIVE)
+  // -------------------------------------------------------------
 
-  // Current counter seconds
+  // 1. Rolling VHS Horizontal Tracking Interference Bar
+  const vhsRollingY = (frame * 5.2) % 2100 - 100;
+
+  // 2. Continuous Realtime Camcorder Timecode
   const currentSec = Math.floor(frame / fps);
   const currentMilli = Math.floor(((frame % fps) / fps) * 99);
+  const isRecBlinking = Math.floor(frame / 12) % 2 === 0;
+
+  // 3. Animated Rotating Y2K Sparkle (✦)
+  const starRotation = (frame * 2.5) % 360;
+
+  // 4. Moving Diagonal Caution Stripes Pattern Offset
+  const stripeOffset = (frame * 2) % 40;
+
+  // 5. Breathing float on Upper Hook Sticker
+  const hookFloatY = Math.sin(frame / 14) * 2.5;
 
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: '#000000',
-        fontFamily: "'Space Grotesk', sans-serif",
+        backgroundColor: '#0A0A0A',
+        fontFamily: "'Cabinet Grotesk', 'Space Mono', sans-serif",
       }}
     >
-      {/* Google Fonts: Space Grotesk + Share Tech Mono + Archivo Black */}
+      {/* Load Fonts: Cabinet Grotesk + Space Mono + Inter */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Share+Tech+Mono&family=Space+Grotesk:wght@600;700;800;900&display=swap');
+        @import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,800,900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;500;600;700;800;900&display=swap');
         * {
           box-sizing: border-box;
           -webkit-font-smoothing: antialiased;
@@ -327,6 +355,25 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
       ))}
 
       {/* ============================================================ */}
+      {/* 📺 MOVING Y2K OVERLAY: ROLLING VHS TRACKING BAR (GERAK!)     */}
+      {/* ============================================================ */}
+      <div
+        style={{
+          position: 'absolute',
+          top: `${vhsRollingY}px`,
+          left: 0,
+          right: 0,
+          height: '70px',
+          background:
+            'linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.06) 50%, rgba(0,220,130,0.04) 70%, transparent 100%)',
+          pointerEvents: 'none',
+          zIndex: 50,
+          borderTop: '1px solid rgba(255,255,255,0.08)',
+          borderBottom: '1px solid rgba(255,255,255,0.05)',
+        }}
+      />
+
+      {/* ============================================================ */}
       {/* 📹 Y2K RETRO CAMCORDER / VHS HUD OVERLAY (PERSISTENT)         */}
       {/* ============================================================ */}
 
@@ -347,47 +394,73 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
           alignItems: 'center',
           justifyContent: 'space-between',
           zIndex: 65,
-          fontFamily: "'Share Tech Mono', monospace",
+          fontFamily: "'Space Mono', monospace",
         }}
       >
-        {/* REC Indicator */}
+        {/* Blinking REC + Live Ticking Milliseconds */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span
             style={{
               width: '14px',
               height: '14px',
               borderRadius: '50%',
-              backgroundColor: isRecVisible ? '#ef4444' : 'transparent',
-              boxShadow: isRecVisible ? '0 0 12px #ef4444' : 'none',
-              border: '2px solid #ef4444',
+              backgroundColor: isRecBlinking ? '#FF0055' : 'transparent',
+              boxShadow: isRecBlinking ? '0 0 14px #FF0055' : 'none',
+              border: '2px solid #FF0055',
             }}
           />
-          <span style={{ fontSize: '20px', fontWeight: 800, color: '#ffffff', letterSpacing: '0.1em' }}>
+          <span
+            style={{
+              fontSize: '20px',
+              fontWeight: 700,
+              color: '#FFFFFF',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+            }}
+          >
             REC [00:{String(currentSec).padStart(2, '0')}:{String(currentMilli).padStart(2, '0')}]
           </span>
         </div>
 
         {/* SP ▶ 1080HD */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ fontSize: '18px', fontWeight: 700, color: '#38bdf8', letterSpacing: '0.08em' }}>
+          <span
+            style={{
+              fontSize: '18px',
+              fontWeight: 700,
+              color: '#00DC82',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+            }}
+          >
             SP ▶ 1080HD
           </span>
-          <span style={{ fontSize: '16px', fontWeight: 800, color: '#ffffff', backgroundColor: '#000000', border: '1.5px solid #ffffff', padding: '2px 8px' }}>
+          <span
+            style={{
+              fontSize: '16px',
+              fontWeight: 700,
+              color: '#FFFFFF',
+              backgroundColor: '#0A0A0A',
+              border: '1.5px solid #FFFFFF',
+              padding: '2px 8px',
+              textTransform: 'uppercase',
+            }}
+          >
             BAT [▮▮▯]
           </span>
         </div>
       </div>
 
       {/* ============================================================ */}
-      {/* ⚡ NEO-BRUTALIST TILTED STICKER HOOK (UPPER-THIRD)           */}
+      {/* ⚡ ARTICLESLIDE TILTED STICKER HOOK (UPPER-THIRD)             */}
       {/* ============================================================ */}
       <div
         style={{
           position: 'absolute',
           top: '120px',
-          left: '54px',
+          left: '50px',
           right: '140px',
-          transform: 'rotate(-1.8deg)',
+          transform: `translateY(${hookFloatY}px) rotate(-1.5deg)`,
           transformOrigin: 'top left',
           display: 'flex',
           flexDirection: 'column',
@@ -396,43 +469,79 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
           zIndex: 55,
         }}
       >
-        {/* Acid Lime Green Category Badge */}
+        {/* Tape Sticker Label (from ArticleSlide.vue line 113-117) */}
         <div
           style={{
-            backgroundColor: '#ccff00',
-            color: '#000000',
-            border: '3.5px solid #000000',
-            boxShadow: '5px 5px 0px #000000',
-            fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: '18px',
-            fontWeight: 900,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            padding: '6px 18px',
-            borderRadius: '2px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '12px',
+            background: '#0A0A0A',
+            border: '3px solid #0A0A0A',
+            borderRadius: '4px',
+            padding: '8px 22px',
+            boxShadow: '4px 4px 0px #00DC82',
           }}
         >
-          ★ SEOULSOURCE // {category || 'DRAMA RECAP'} ★
+          {/* Animated Rotating Star */}
+          <span
+            style={{
+              display: 'inline-block',
+              color: '#00DC82',
+              fontSize: '22px',
+              fontWeight: 900,
+              transform: `rotate(${starRotation}deg)`,
+            }}
+          >
+            ✦
+          </span>
+
+          <span
+            style={{
+              fontFamily: "'Cabinet Grotesk', sans-serif",
+              fontSize: '20px',
+              fontWeight: 900,
+              color: '#00DC82',
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+            }}
+          >
+            SEOUL SOURCE
+          </span>
+
+          <div style={{ height: '16px', width: '2px', background: 'rgba(255,255,255,0.3)' }} />
+
+          <span
+            style={{
+              fontFamily: "'Space Mono', monospace",
+              fontSize: '15px',
+              fontWeight: 700,
+              color: '#FFFFFF',
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+            }}
+          >
+            {category || 'K-DRAMA RECAP'}
+          </span>
         </div>
 
-        {/* Cyber Caution Yellow Headline Sticker */}
+        {/* Headline Card (Cabinet Grotesk 900, UPPERCASE, Paper White + Pink Shadow) */}
         <div
           style={{
-            backgroundColor: '#ffe600',
-            color: '#000000',
-            border: '4px solid #000000',
-            boxShadow: '7px 7px 0px #000000',
-            padding: '16px 24px',
-            borderRadius: '3px',
+            backgroundColor: '#FAF9F5',
+            color: '#0A0A0A',
+            border: '3.5px solid #0A0A0A',
+            boxShadow: '8px 8px 0px #FF6B9D',
+            padding: '18px 24px',
+            borderRadius: '4px',
             maxWidth: '860px',
           }}
         >
           <div
             style={{
-              fontFamily: "'Archivo Black', 'Space Grotesk', sans-serif",
+              fontFamily: "'Cabinet Grotesk', sans-serif",
               fontSize: '44px',
               fontWeight: 900,
-              lineHeight: 1.14,
+              lineHeight: 1.12,
               letterSpacing: '-0.02em',
               textTransform: 'uppercase',
             }}
@@ -443,29 +552,31 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
       </div>
 
       {/* ============================================================ */}
-      {/* 📟 Y2K DIGITAL DATE & WATERMARK (BOTTOM-LEFT)                 */}
+      {/* 📟 Y2K DATE & WATERMARK (BOTTOM-LEFT) (UPPERCASE)             */}
       {/* ============================================================ */}
       <div
         style={{
           position: 'absolute',
           bottom: '120px',
-          left: '60px',
+          left: '50px',
           zIndex: 65,
-          fontFamily: "'Share Tech Mono', monospace",
-          fontSize: '18px',
+          fontFamily: "'Space Mono', monospace",
+          fontSize: '16px',
           fontWeight: 700,
-          color: 'rgba(255, 255, 255, 0.75)',
-          backgroundColor: 'rgba(0,0,0,0.7)',
-          padding: '4px 12px',
-          border: '1.5px solid rgba(255,255,255,0.3)',
+          color: '#FFFFFF',
+          backgroundColor: '#0A0A0A',
+          padding: '4px 14px',
+          border: '1.5px solid #FFFFFF',
+          boxShadow: '2px 2px 0px rgba(255,255,255,0.3)',
           letterSpacing: '0.06em',
+          textTransform: 'uppercase',
         }}
       >
-        OCT 21, 2026 // @seoulsource_
+        OCT 21, 2026 // @SEOULSOURCE_
       </div>
 
       {/* ============================================================ */}
-      {/* 🏁 BRUTALIST CAUTION PROGRESS BAR (VERY TOP)                 */}
+      {/* 🏁 ANIMATED CAUTION STRIPES PROGRESS BAR (VERY TOP) (GERAK!) */}
       {/* ============================================================ */}
       <div
         style={{
@@ -473,19 +584,21 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
           top: '0px',
           left: '0px',
           width: '1080px',
-          height: '7px',
-          backgroundColor: '#000000',
+          height: '8px',
+          backgroundColor: '#0A0A0A',
           zIndex: 100,
-          borderBottom: '2px solid #000000',
+          borderBottom: '2px solid #0A0A0A',
         }}
       >
         <div
           style={{
             height: '100%',
             width: `${progressBarWidth}px`,
-            backgroundColor: '#ccff00',
-            borderRight: '3px solid #000000',
-            boxShadow: '0 0 10px #ccff00',
+            backgroundImage:
+              'repeating-linear-gradient(45deg, #00DC82, #00DC82 12px, #0A0A0A 12px, #0A0A0A 24px)',
+            backgroundPosition: `${stripeOffset}px 0px`,
+            borderRight: '3px solid #0A0A0A',
+            boxShadow: '0 0 10px #00DC82',
           }}
         />
       </div>
