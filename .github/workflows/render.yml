@@ -37,7 +37,19 @@ jobs:
         with:
           node-version: 22
 
+      - name: Cache Node Modules & Remotion
+        uses: actions/cache@v4
+        id: cache-dependencies
+        with:
+          path: |
+            node_modules
+            ~/.cache/remotion
+          key: ${{ runner.os }}-remotion-v1-${{ hashFiles('package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-remotion-v1-
+
       - name: Install Dependencies
+        if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: npm install --no-audit --no-fund
 
       - name: Prepare Props JSON
