@@ -69,9 +69,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-ytdlp-curl-cffi-
 
-      - name: Install yt-dlp with Impersonation (curl-cffi)
+      - name: Start Proof-of-Origin (POT) Provider Server
         run: |
-          pip install --upgrade "yt-dlp[default,curl-cffi]"
+          docker run --name bgutil-provider -d --init -p 127.0.0.1:4416:4416 brainicism/bgutil-ytdlp-pot-provider
+          sleep 3
+          curl -s http://127.0.0.1:4416/ping || echo "POT provider initialized."
+
+      - name: Install yt-dlp & POT Provider Plugin
+        run: |
+          pip install --upgrade "yt-dlp[default,curl-cffi]" bgutil-ytdlp-pot-provider
 
       - name: Verify yt-dlp Impersonation Targets
         run: |
@@ -103,7 +109,6 @@ jobs:
             echo "📥 Mengunduh video dari Direct URL: $DIRECT_URL"
             yt-dlp \
               $COOKIE_ARGS \
-              --impersonate chrome \
               --force-overwrites \
               -o "public/bg_video.mp4" \
               "$DIRECT_URL" || \
@@ -113,16 +118,14 @@ jobs:
               "$DIRECT_URL" || echo "Direct URL download failed, continuing without background video."
           elif [ -n "$QUERY" ]; then
             echo "🔍 Mencari & mengunduh video via yt-dlp search: $QUERY"
-            yt-dlp \
+            yt-dlp -v \
               $COOKIE_ARGS \
               --default-search "ytsearch" \
               --merge-output-format mp4 \
               --force-overwrites \
               -o "public/bg_video.mp4" \
               "ytsearch1:$QUERY" || \
-            yt-dlp \
-              $COOKIE_ARGS \
-              --extractor-args "youtube:player_client=android,web" \
+            yt-dlp -v \
               --default-search "ytsearch" \
               --merge-output-format mp4 \
               --force-overwrites \
