@@ -115,19 +115,19 @@ jobs:
             echo "🔍 Mencari & mengunduh video via yt-dlp search: $QUERY"
             yt-dlp \
               $COOKIE_ARGS \
-              --extractor-args "youtube:player_client=mweb,android" \
+              --extractor-args "youtube:player_client=android,mweb" \
               --default-search "ytsearch" \
               --download-sections "*0:05-0:20" \
-              -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]/best" \
+              -f "b/bv*+ba/b" \
               --merge-output-format mp4 \
               --force-overwrites \
               -o "public/bg_video.mp4" \
               "ytsearch1:$QUERY" || \
             yt-dlp \
               $COOKIE_ARGS \
-              --extractor-args "youtube:player_client=mweb,android" \
+              --extractor-args "youtube:player_client=android,mweb" \
               --default-search "ytsearch" \
-              -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]/best" \
+              -f "b/bv*+ba/b" \
               --merge-output-format mp4 \
               --force-overwrites \
               -o "public/bg_video.mp4" \
@@ -135,7 +135,7 @@ jobs:
             yt-dlp \
               $COOKIE_ARGS \
               --default-search "ytsearch" \
-              -f "bestvideo[height<=1080]+bestaudio/best[height<=1080]/best" \
+              -f "b/bv*+ba/b" \
               --merge-output-format mp4 \
               --force-overwrites \
               -o "public/bg_video.mp4" \
