@@ -87,9 +87,6 @@ jobs:
           if [ -n "$DIRECT_URL" ]; then
             echo "📥 Mengunduh video dari Direct URL: $DIRECT_URL"
             yt-dlp \
-              --extractor-args "youtube:player_client=android,web" \
-              --download-sections "*0:05-0:20" \
-              -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
               --force-overwrites \
               -o "public/bg_video.mp4" \
               "$DIRECT_URL" || echo "Direct URL download failed, continuing without background video."
