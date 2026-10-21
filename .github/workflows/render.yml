@@ -105,14 +105,18 @@ jobs:
             COOKIE_ARGS="--cookies cookies.txt"
           fi
 
+          POT_ARGS="--extractor-args youtubepot-bgutilhttp:base_url=http://127.0.0.1:4416"
+
           if [ -n "$DIRECT_URL" ]; then
             echo "📥 Mengunduh video dari Direct URL: $DIRECT_URL"
             yt-dlp \
               $COOKIE_ARGS \
+              $POT_ARGS \
               --force-overwrites \
               -o "public/bg_video.mp4" \
               "$DIRECT_URL" || \
             yt-dlp \
+              $POT_ARGS \
               --force-overwrites \
               -o "public/bg_video.mp4" \
               "$DIRECT_URL" || echo "Direct URL download failed, continuing without background video."
@@ -120,12 +124,14 @@ jobs:
             echo "🔍 Mencari & mengunduh video via yt-dlp search: $QUERY"
             yt-dlp -v \
               $COOKIE_ARGS \
+              $POT_ARGS \
               --default-search "ytsearch" \
               --merge-output-format mp4 \
               --force-overwrites \
               -o "public/bg_video.mp4" \
               "ytsearch1:$QUERY" || \
             yt-dlp -v \
+              $POT_ARGS \
               --default-search "ytsearch" \
               --merge-output-format mp4 \
               --force-overwrites \
