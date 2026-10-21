@@ -77,16 +77,32 @@ jobs:
         run: |
           yt-dlp --list-impersonate-targets || true
 
+      - name: Setup YouTube Cookies
+        env:
+          YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
+        run: |
+          if [ -n "$YOUTUBE_COOKIES" ]; then
+            echo "$YOUTUBE_COOKIES" > cookies.txt
+            echo "✅ YouTube cookies loaded from secrets."
+          else
+            echo "ℹ️ No YOUTUBE_COOKIES secret found, proceeding without cookies."
+          fi
+
       - name: Download Background Video (yt-dlp)
         id: download_video
         run: |
           mkdir -p public
           QUERY="${{ github.event.inputs.video_query }}"
           DIRECT_URL="${{ github.event.inputs.video_url }}"
+          COOKIE_ARGS=""
+          if [ -f "cookies.txt" ]; then
+            COOKIE_ARGS="--cookies cookies.txt"
+          fi
 
           if [ -n "$DIRECT_URL" ]; then
             echo "📥 Mengunduh video dari Direct URL: $DIRECT_URL"
             yt-dlp \
+              $COOKIE_ARGS \
               --impersonate chrome \
               --force-overwrites \
               -o "public/bg_video.mp4" \
@@ -98,8 +114,8 @@ jobs:
           elif [ -n "$QUERY" ]; then
             echo "🔍 Mencari & mengunduh video via yt-dlp search: $QUERY"
             yt-dlp \
+              $COOKIE_ARGS \
               --impersonate chrome \
-              --extractor-args "youtube:player_client=tv_embedded,tv,ios" \
               --default-search "ytsearch" \
               --download-sections "*0:05-0:20" \
               -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
@@ -107,6 +123,7 @@ jobs:
               -o "public/bg_video.mp4" \
               "ytsearch1:$QUERY" || \
             yt-dlp \
+              $COOKIE_ARGS \
               --extractor-args "youtube:player_client=tv_embedded,tv" \
               --default-search "ytsearch" \
               --download-sections "*0:05-0:20" \
@@ -115,6 +132,7 @@ jobs:
               -o "public/bg_video.mp4" \
               "ytsearch1:$QUERY" || \
             yt-dlp \
+              $COOKIE_ARGS \
               --extractor-args "youtube:player_client=mweb" \
               --default-search "ytsearch" \
               --download-sections "*0:05-0:20" \
@@ -175,3 +193,8 @@ jobs:
           gh release create "$TAG_NAME" "$OUT_FILE" \
             --title "Render #${{ github.run_id }}" \
             --notes "Automated SeoulSource video render completed successfully."
+
+      - name: Cleanup Sensitive Files
+        if: always()
+        run: |
+          rm -f cookies.txt
