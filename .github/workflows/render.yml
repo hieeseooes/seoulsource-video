@@ -106,17 +106,20 @@ jobs:
           fi
 
           POT_ARGS="--extractor-args youtubepot-bgutilhttp:base_url=http://127.0.0.1:4416"
+          JS_ARGS="--js-runtimes node --remote-components ejs:github"
 
           if [ -n "$DIRECT_URL" ]; then
             echo "📥 Mengunduh video dari Direct URL: $DIRECT_URL"
             yt-dlp \
               $COOKIE_ARGS \
               $POT_ARGS \
+              $JS_ARGS \
               --force-overwrites \
               -o "public/bg_video.mp4" \
               "$DIRECT_URL" || \
             yt-dlp \
               $POT_ARGS \
+              $JS_ARGS \
               --force-overwrites \
               -o "public/bg_video.mp4" \
               "$DIRECT_URL" || echo "Direct URL download failed, continuing without background video."
@@ -125,6 +128,7 @@ jobs:
             yt-dlp -v \
               $COOKIE_ARGS \
               $POT_ARGS \
+              $JS_ARGS \
               --default-search "ytsearch" \
               --merge-output-format mp4 \
               --force-overwrites \
@@ -132,6 +136,7 @@ jobs:
               "ytsearch1:$QUERY" || \
             yt-dlp -v \
               $POT_ARGS \
+              $JS_ARGS \
               --default-search "ytsearch" \
               --merge-output-format mp4 \
               --force-overwrites \
