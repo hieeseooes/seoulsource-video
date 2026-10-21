@@ -52,41 +52,20 @@ export const defaultReelProps: ReelProps = {
   ],
 };
 
-// Helper: Split title to highlight the first few hook words in vibrant golden yellow
-const renderHighlightedTitle = (title: string) => {
-  const words = title.trim().split(/\s+/);
-  if (words.length <= 2) {
-    return <span style={{ color: '#FACC15' }}>{title}</span>;
-  }
-  const highlightCount = Math.min(3, Math.ceil(words.length * 0.38));
-  const highlighted = words.slice(0, highlightCount).join(' ');
-  const remaining = words.slice(highlightCount).join(' ');
-
-  return (
-    <>
-      <span style={{ color: '#FACC15', textShadow: '0 0 25px rgba(250, 204, 21, 0.45)' }}>
-        {highlighted}{' '}
-      </span>
-      <span style={{ color: '#FFFFFF' }}>{remaining}</span>
-    </>
-  );
-};
-
-// Helper: Format subtext quotes nicely
-const renderSubtext = (text?: string) => {
+// Helper: Format subtext quotes with Brutalist Black Pill + Acid Green Text
+const renderBrutalistSubtext = (text?: string) => {
   if (!text) return null;
-  // If text contains quotes, emphasize the quote in cyan
   if (text.includes('"')) {
     const parts = text.split(/(".*?")/g);
     return (
       <div
         style={{
-          fontFamily: "'Plus Jakarta Sans', sans-serif",
-          fontSize: '26px',
-          fontWeight: 600,
+          fontFamily: "'Space Grotesk', sans-serif",
+          fontSize: '24px',
+          fontWeight: 700,
           lineHeight: 1.35,
-          color: '#E2E8F0',
-          textShadow: '0 2px 10px rgba(0,0,0,0.9)',
+          color: '#1e293b',
+          marginTop: '8px',
         }}
       >
         {parts.map((p, idx) =>
@@ -94,10 +73,15 @@ const renderSubtext = (text?: string) => {
             <span
               key={idx}
               style={{
-                color: '#67E8F9',
-                fontStyle: 'italic',
-                fontWeight: 700,
-                textShadow: '0 0 15px rgba(103, 232, 249, 0.35)',
+                display: 'inline-block',
+                backgroundColor: '#000000',
+                color: '#ccff00',
+                padding: '3px 10px',
+                borderRadius: '4px',
+                fontWeight: 900,
+                letterSpacing: '0.01em',
+                margin: '2px 0',
+                boxShadow: '3px 3px 0px rgba(0,0,0,0.3)',
               }}
             >
               {p}
@@ -113,12 +97,12 @@ const renderSubtext = (text?: string) => {
   return (
     <div
       style={{
-        fontFamily: "'Plus Jakarta Sans', sans-serif",
-        fontSize: '26px',
-        fontWeight: 500,
+        fontFamily: "'Space Grotesk', sans-serif",
+        fontSize: '24px',
+        fontWeight: 600,
         lineHeight: 1.35,
-        color: '#CBD5E1',
-        textShadow: '0 2px 10px rgba(0,0,0,0.9)',
+        color: '#334155',
+        marginTop: '8px',
       }}
     >
       {text}
@@ -135,33 +119,34 @@ const SingleScene: React.FC<{
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  // Smooth cinematic Ken Burns scale & subtle pan
-  const scale = interpolate(frame, [0, sceneDurationFrames], [1.0, 1.09], {
+  // Snappy Ken Burns scale & pan
+  const scale = interpolate(frame, [0, sceneDurationFrames], [1.0, 1.08], {
     extrapolateRight: 'clamp',
   });
-  const translateY = interpolate(frame, [0, sceneDurationFrames], [0, -12], {
+  const translateY = interpolate(frame, [0, sceneDurationFrames], [0, -10], {
     extrapolateRight: 'clamp',
   });
 
-  // Entrance spring animation for subtitle box
-  const enterSpring = spring({
+  // Snappy Bouncy Pop-In Animation (Sticker slap overshoot!)
+  const popSpring = spring({
     frame,
     fps,
-    config: { damping: 16, mass: 0.6, stiffness: 140 },
+    config: { damping: 11, stiffness: 220, mass: 0.5 },
   });
 
-  const subtitleY = interpolate(enterSpring, [0, 1], [30, 0]);
-  const subtitleOpacity = interpolate(enterSpring, [0, 1], [0, 1]);
+  const stickerScale = interpolate(popSpring, [0, 1], [0.82, 1]);
+  const stickerOpacity = interpolate(popSpring, [0, 1], [0, 1]);
 
   return (
-    <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: '#05070c' }}>
-      {/* Background Image with Ken Burns Effect */}
+    <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: '#000000' }}>
+      {/* Background Media with Raw Film Contrast */}
       <div
         style={{
           width: '100%',
           height: '100%',
           transform: `scale(${scale}) translateY(${translateY}px)`,
           transformOrigin: 'center center',
+          filter: 'contrast(1.08) saturate(1.1)',
         }}
       >
         <Img
@@ -174,115 +159,90 @@ const SingleScene: React.FC<{
         />
       </div>
 
-      {/* Cinematic Top & Bottom Vignettes (Actor Face Remains Clean in Center!) */}
+      {/* Retro CRT Scanlines & Grain Subtle Overlay */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
           background:
-            'linear-gradient(180deg, rgba(3,5,10,0.92) 0%, rgba(3,5,10,0.55) 15%, rgba(3,5,10,0.05) 35%, transparent 50%)',
+            'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03))',
+          backgroundSize: '100% 4px, 6px 100%',
           pointerEvents: 'none',
+          opacity: 0.65,
         }}
       />
+
+      {/* Top & Bottom Cinematic Shadow (Ensures Stickers & HUD Pop) */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
           background:
-            'linear-gradient(0deg, rgba(3,5,10,0.96) 0%, rgba(3,5,10,0.85) 18%, rgba(3,5,10,0.3) 34%, transparent 48%)',
-          pointerEvents: 'none',
-        }}
-      />
-      {/* Subtle corner vignette */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          boxShadow: 'inset 0 0 160px rgba(0, 0, 0, 0.75)',
+            'linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 14%, transparent 35%, transparent 65%, rgba(0,0,0,0.5) 82%, rgba(0,0,0,0.92) 100%)',
           pointerEvents: 'none',
         }}
       />
 
-      {/* Lower-Third: Netflix / CapCut Style Subtitle Bar */}
-      {/* Positioned at bottom: 270px to stay safely above TikTok bottom description zone */}
-      {/* Right margin: 140px to stay safely away from TikTok like/comment/share icons */}
+      {/* Lower-Third: Neo-Brutalist Sticker Card (Catatan Seola) */}
+      {/* Positioned at bottom: 270px, right: 140px to respect TikTok safe zone */}
       <div
         style={{
           position: 'absolute',
           bottom: '270px',
-          left: '60px',
+          left: '54px',
           right: '140px',
-          transform: `translateY(${subtitleY}px)`,
-          opacity: subtitleOpacity,
+          transform: `scale(${stickerScale}) rotate(1.2deg)`,
+          opacity: stickerOpacity,
+          transformOrigin: 'bottom left',
           display: 'flex',
           flexDirection: 'column',
-          gap: '12px',
+          gap: '8px',
+          zIndex: 40,
         }}
       >
-        {/* Micro Scene Tag */}
+        {/* Brutalist Label Tag */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              backgroundColor: 'rgba(0, 0, 0, 0.65)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
+              backgroundColor: '#ff007f',
+              color: '#ffffff',
+              border: '3px solid #000000',
+              boxShadow: '4px 4px 0px #000000',
+              fontFamily: "'Share Tech Mono', monospace",
+              fontSize: '16px',
+              fontWeight: 800,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
               padding: '4px 14px',
-              borderRadius: '999px',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: '2px',
             }}
           >
-            <span
-              style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                backgroundColor: '#38bdf8',
-                boxShadow: '0 0 8px #38bdf8',
-              }}
-            />
-            <span
-              style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                fontSize: '15px',
-                fontWeight: 700,
-                color: '#94a3b8',
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-              }}
-            >
-              Scene {String(index + 1).padStart(2, '0')} / {String(totalScenes).padStart(2, '0')} • Catatan Seola
-            </span>
+            [ SCENE {String(index + 1).padStart(2, '0')}/{String(totalScenes).padStart(2, '0')} // CATATAN SEOLA ]
           </div>
         </div>
 
-        {/* Cinematic Translucent Subtitle Pill Container */}
+        {/* Brutalist White Memo Card with Hard Drop Shadow */}
         <div
           style={{
-            backgroundColor: 'rgba(5, 8, 16, 0.72)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            borderRadius: '18px',
+            backgroundColor: '#ffffff',
+            border: '4px solid #000000',
+            boxShadow: '8px 8px 0px #000000',
             padding: '24px 28px',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6)',
+            borderRadius: '4px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '12px',
+            gap: '8px',
           }}
         >
-          {/* Main Caption (Netflix subtitle look) */}
+          {/* Main Caption */}
           {scene.caption && (
             <div
               style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                fontSize: '36px',
+                fontFamily: "'Space Grotesk', sans-serif",
+                fontSize: '34px',
                 fontWeight: 800,
-                lineHeight: 1.25,
-                color: '#ffffff',
-                textShadow: '0 2px 12px rgba(0, 0, 0, 0.8)',
+                lineHeight: 1.22,
+                color: '#000000',
                 letterSpacing: '-0.02em',
               }}
             >
@@ -290,8 +250,8 @@ const SingleScene: React.FC<{
             </div>
           )}
 
-          {/* Subtext dialogue / analysis */}
-          {scene.subtext && renderSubtext(scene.subtext)}
+          {/* Subtext with dialogue pill */}
+          {scene.subtext && renderBrutalistSubtext(scene.subtext)}
         </div>
       </div>
     </AbsoluteFill>
@@ -319,20 +279,27 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
     return item;
   });
 
-  // Hairline Top Progress Bar (0px to 1080px)
+  // Brutalist Progress Bar Width (0px to 1080px)
   const progressRatio = Math.min(1, frame / Math.max(1, durationInFrames));
   const progressBarWidth = progressRatio * 1080;
+
+  // Y2K Camcorder Blinking REC indicator (blinks every 15 frames)
+  const isRecVisible = Math.floor(frame / 15) % 2 === 0;
+
+  // Current counter seconds
+  const currentSec = Math.floor(frame / fps);
+  const currentMilli = Math.floor(((frame % fps) / fps) * 99);
 
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: '#03050a',
-        fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+        backgroundColor: '#000000',
+        fontFamily: "'Space Grotesk', sans-serif",
       }}
     >
-      {/* Inject Google Fonts */}
+      {/* Google Fonts: Space Grotesk + Share Tech Mono + Archivo Black */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,500;0,600;0,700;0,800;0,900;1,500;1,600;1,700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Share+Tech+Mono&family=Space+Grotesk:wght@600;700;800;900&display=swap');
         * {
           box-sizing: border-box;
           -webkit-font-smoothing: antialiased;
@@ -359,98 +326,166 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
         </Sequence>
       ))}
 
-      {/* Top Header: Upper-Third Hook Headline (Global Overlay) */}
-      {/* Positioned at top: 100px, right: 140px to respect TikTok safe zone */}
+      {/* ============================================================ */}
+      {/* 📹 Y2K RETRO CAMCORDER / VHS HUD OVERLAY (PERSISTENT)         */}
+      {/* ============================================================ */}
+
+      {/* Corner Brackets ⌜ ⌝ ⌞ ⌟ */}
+      <div style={{ position: 'absolute', top: '50px', left: '44px', width: '28px', height: '28px', borderTop: '3px solid rgba(255,255,255,0.7)', borderLeft: '3px solid rgba(255,255,255,0.7)', zIndex: 60 }} />
+      <div style={{ position: 'absolute', top: '50px', right: '44px', width: '28px', height: '28px', borderTop: '3px solid rgba(255,255,255,0.7)', borderRight: '3px solid rgba(255,255,255,0.7)', zIndex: 60 }} />
+      <div style={{ position: 'absolute', bottom: '50px', left: '44px', width: '28px', height: '28px', borderBottom: '3px solid rgba(255,255,255,0.7)', borderLeft: '3px solid rgba(255,255,255,0.7)', zIndex: 60 }} />
+      <div style={{ position: 'absolute', bottom: '50px', right: '44px', width: '28px', height: '28px', borderBottom: '3px solid rgba(255,255,255,0.7)', borderRight: '3px solid rgba(255,255,255,0.7)', zIndex: 60 }} />
+
+      {/* Top Camcorder Status Bar */}
       <div
         style={{
           position: 'absolute',
-          top: '100px',
+          top: '64px',
           left: '60px',
-          right: '140px',
+          right: '60px',
           display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-          zIndex: 50,
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          zIndex: 65,
+          fontFamily: "'Share Tech Mono', monospace",
         }}
       >
-        {/* Micro-Brand Pill: Ultra Sleek Editorial Style */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* REC Indicator */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span
             style={{
-              width: '8px',
-              height: '8px',
+              width: '14px',
+              height: '14px',
               borderRadius: '50%',
-              backgroundColor: '#ef4444',
-              boxShadow: '0 0 10px #ef4444',
-              display: 'inline-block',
+              backgroundColor: isRecVisible ? '#ef4444' : 'transparent',
+              boxShadow: isRecVisible ? '0 0 12px #ef4444' : 'none',
+              border: '2px solid #ef4444',
             }}
           />
-          <span
-            style={{
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              fontSize: '17px',
-              fontWeight: 800,
-              letterSpacing: '0.14em',
-              color: '#f8fafc',
-              textTransform: 'uppercase',
-            }}
-          >
-            SEOULSOURCE <span style={{ opacity: 0.35, margin: '0 6px' }}>•</span> {category || 'DRAMA INSIGHT'}
+          <span style={{ fontSize: '20px', fontWeight: 800, color: '#ffffff', letterSpacing: '0.1em' }}>
+            REC [00:{String(currentSec).padStart(2, '0')}:{String(currentMilli).padStart(2, '0')}]
           </span>
         </div>
 
-        {/* Viral Hook Headline with Golden Yellow Highlight */}
-        <div
-          style={{
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
-            fontSize: '48px',
-            fontWeight: 900,
-            lineHeight: 1.15,
-            letterSpacing: '-0.025em',
-            textShadow: '0 4px 20px rgba(0, 0, 0, 0.95), 0 2px 4px rgba(0, 0, 0, 0.98)',
-            maxWidth: '860px',
-          }}
-        >
-          {renderHighlightedTitle(title)}
+        {/* SP ▶ 1080HD */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span style={{ fontSize: '18px', fontWeight: 700, color: '#38bdf8', letterSpacing: '0.08em' }}>
+            SP ▶ 1080HD
+          </span>
+          <span style={{ fontSize: '16px', fontWeight: 800, color: '#ffffff', backgroundColor: '#000000', border: '1.5px solid #ffffff', padding: '2px 8px' }}>
+            BAT [▮▮▯]
+          </span>
         </div>
       </div>
 
-      {/* Minimalist Watermark at Bottom Left (Safe from TikTok sound icon) */}
+      {/* ============================================================ */}
+      {/* ⚡ NEO-BRUTALIST TILTED STICKER HOOK (UPPER-THIRD)           */}
+      {/* ============================================================ */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '120px',
+          left: '54px',
+          right: '140px',
+          transform: 'rotate(-1.8deg)',
+          transformOrigin: 'top left',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          gap: '10px',
+          zIndex: 55,
+        }}
+      >
+        {/* Acid Lime Green Category Badge */}
+        <div
+          style={{
+            backgroundColor: '#ccff00',
+            color: '#000000',
+            border: '3.5px solid #000000',
+            boxShadow: '5px 5px 0px #000000',
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: '18px',
+            fontWeight: 900,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            padding: '6px 18px',
+            borderRadius: '2px',
+          }}
+        >
+          ★ SEOULSOURCE // {category || 'DRAMA RECAP'} ★
+        </div>
+
+        {/* Cyber Caution Yellow Headline Sticker */}
+        <div
+          style={{
+            backgroundColor: '#ffe600',
+            color: '#000000',
+            border: '4px solid #000000',
+            boxShadow: '7px 7px 0px #000000',
+            padding: '16px 24px',
+            borderRadius: '3px',
+            maxWidth: '860px',
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "'Archivo Black', 'Space Grotesk', sans-serif",
+              fontSize: '44px',
+              fontWeight: 900,
+              lineHeight: 1.14,
+              letterSpacing: '-0.02em',
+              textTransform: 'uppercase',
+            }}
+          >
+            {title}
+          </div>
+        </div>
+      </div>
+
+      {/* ============================================================ */}
+      {/* 📟 Y2K DIGITAL DATE & WATERMARK (BOTTOM-LEFT)                 */}
+      {/* ============================================================ */}
       <div
         style={{
           position: 'absolute',
           bottom: '120px',
           left: '60px',
-          zIndex: 50,
-          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          zIndex: 65,
+          fontFamily: "'Share Tech Mono', monospace",
           fontSize: '18px',
           fontWeight: 700,
-          letterSpacing: '0.04em',
-          color: 'rgba(255, 255, 255, 0.45)',
-          textShadow: '0 2px 6px rgba(0, 0, 0, 0.9)',
+          color: 'rgba(255, 255, 255, 0.75)',
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          padding: '4px 12px',
+          border: '1.5px solid rgba(255,255,255,0.3)',
+          letterSpacing: '0.06em',
         }}
       >
-        @seoulsource_
+        OCT 21, 2026 // @seoulsource_
       </div>
 
-      {/* Sleek Hairline Top Progress Bar (Height: 5px) */}
+      {/* ============================================================ */}
+      {/* 🏁 BRUTALIST CAUTION PROGRESS BAR (VERY TOP)                 */}
+      {/* ============================================================ */}
       <div
         style={{
           position: 'absolute',
           top: '0px',
           left: '0px',
           width: '1080px',
-          height: '5px',
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          height: '7px',
+          backgroundColor: '#000000',
           zIndex: 100,
+          borderBottom: '2px solid #000000',
         }}
       >
         <div
           style={{
             height: '100%',
             width: `${progressBarWidth}px`,
-            background: 'linear-gradient(90deg, #FACC15 0%, #38BDF8 60%, #EC4899 100%)',
-            boxShadow: '0 0 12px rgba(250, 204, 21, 0.7)',
+            backgroundColor: '#ccff00',
+            borderRight: '3px solid #000000',
+            boxShadow: '0 0 10px #ccff00',
           }}
         />
       </div>
