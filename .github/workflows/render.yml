@@ -7,6 +7,14 @@ on:
         description: 'JSON string of video props'
         required: false
         default: ''
+      video_query:
+        description: 'YouTube search query for background fancam/trailer (e.g. "NMIXX Haewon fancam 4k vertical")'
+        required: false
+        default: ''
+      video_url:
+        description: 'Direct video URL (optional)'
+        required: false
+        default: ''
       composition:
         description: 'Composition ID to render'
         required: false
@@ -52,6 +60,59 @@ jobs:
         if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: npm install --no-audit --no-fund
 
+      - name: Cache yt-dlp Executable
+        uses: actions/cache@v4
+        id: cache-ytdlp
+        with:
+          path: ~/.local/bin/yt-dlp
+          key: ${{ runner.os }}-ytdlp-v1
+
+      - name: Install yt-dlp (Cache Miss)
+        if: steps.cache-ytdlp.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.local/bin
+          curl -sL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o ~/.local/bin/yt-dlp
+          chmod a+rx ~/.local/bin/yt-dlp
+
+      - name: Add local bin to PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Download Background Video (yt-dlp)
+        id: download_video
+        run: |
+          mkdir -p public
+          QUERY="${{ github.event.inputs.video_query }}"
+          DIRECT_URL="${{ github.event.inputs.video_url }}"
+
+          if [ -n "$DIRECT_URL" ]; then
+            echo "📥 Mengunduh video dari Direct URL: $DIRECT_URL"
+            yt-dlp \
+              --extractor-args "youtube:player_client=android,web" \
+              --download-sections "*0:05-0:20" \
+              -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
+              --force-overwrites \
+              -o "public/bg_video.mp4" \
+              "$DIRECT_URL" || echo "Direct URL download failed, continuing without background video."
+          elif [ -n "$QUERY" ]; then
+            echo "🔍 Mencari & mengunduh video via yt-dlp search: $QUERY"
+            yt-dlp \
+              --default-search "ytsearch" \
+              --extractor-args "youtube:player_client=android,web" \
+              --download-sections "*0:05-0:20" \
+              -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
+              --force-overwrites \
+              -o "public/bg_video.mp4" \
+              "ytsearch1:$QUERY" || echo "ytsearch download failed, continuing with static fallback."
+          fi
+
+          if [ -f "public/bg_video.mp4" ]; then
+            echo "✅ Background video siap: $(ls -lh public/bg_video.mp4)"
+            echo "has_bg_video=true" >> $GITHUB_OUTPUT
+          else
+            echo "ℹ️ Tidak ada background video. Menggunakan mode foto statis."
+            echo "has_bg_video=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Prepare Props JSON
         id: prepare_props
         run: |
@@ -62,6 +123,11 @@ jobs:
           else
             cp props.json input-props.json
             echo "Fallback to default props.json."
+          fi
+
+          if [ -f "public/bg_video.mp4" ]; then
+            echo "Menambahkan backgroundVideo ke input-props.json..."
+            jq '. + {backgroundVideo: "bg_video.mp4"}' input-props.json > input-props.tmp.json && mv input-props.tmp.json input-props.json
           fi
           cat input-props.json
 

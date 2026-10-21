@@ -8,6 +8,8 @@ import {
   useCurrentFrame,
   useVideoConfig,
   Audio,
+  OffthreadVideo,
+  staticFile,
 } from 'remotion';
 
 export interface Scene {
@@ -24,6 +26,7 @@ export interface ReelProps {
   scenes: Scene[];
   audioUrl?: string;
   musicUrl?: string;
+  backgroundVideo?: string;
 }
 
 export const defaultReelProps: ReelProps = {
@@ -118,7 +121,8 @@ const SingleScene: React.FC<{
   sceneDurationFrames: number;
   index: number;
   totalScenes: number;
-}> = ({ scene, sceneDurationFrames, index, totalScenes }) => {
+  hasGlobalBgVideo?: boolean;
+}> = ({ scene, sceneDurationFrames, index, totalScenes, hasGlobalBgVideo }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -144,26 +148,107 @@ const SingleScene: React.FC<{
   const floatY = Math.sin(frame / 10) * 3;
 
   return (
-    <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: '#0A0A0A' }}>
-      {/* Background Media with High Contrast */}
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          transform: `scale(${scale}) translateY(${translateY}px)`,
-          transformOrigin: 'center center',
-          filter: 'contrast(1.06) saturate(1.12)',
-        }}
-      >
-        <Img
-          src={scene.image}
+    <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: hasGlobalBgVideo ? 'transparent' : '#0A0A0A' }}>
+      {/* Background Media with High Contrast (Only if no global background video) */}
+      {!hasGlobalBgVideo && scene.image && (
+        <div
           style={{
-            width: '1080px',
-            height: '1920px',
-            objectFit: 'cover',
+            width: '100%',
+            height: '100%',
+            transform: `scale(${scale}) translateY(${translateY}px)`,
+            transformOrigin: 'center center',
+            filter: 'contrast(1.06) saturate(1.12)',
           }}
-        />
-      </div>
+        >
+          <Img
+            src={scene.image}
+            style={{
+              width: '1080px',
+              height: '1920px',
+              objectFit: 'cover',
+            }}
+          />
+        </div>
+      )}
+
+      {/* If global video exists, render Photo as Brutalist Polaroid Evidence Card in Center */}
+      {hasGlobalBgVideo && scene.image && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '250px',
+            left: '60px',
+            right: '60px',
+            height: '750px',
+            backgroundColor: '#FAF9F5',
+            border: '4px solid #0A0A0A',
+            boxShadow: '10px 10px 0px #FF6B9D',
+            borderRadius: '12px',
+            padding: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            transform: `scale(${stickerScale}) translateY(${floatY}px) rotate(-1.2deg)`,
+            opacity: stickerOpacity,
+            zIndex: 35,
+          }}
+        >
+          {/* Paper Corner Crop Ticks */}
+          <div style={{ position: 'absolute', top: '6px', left: '6px', width: '12px', height: '12px', borderTop: '2px solid rgba(10,10,10,0.3)', borderLeft: '2px solid rgba(10,10,10,0.3)' }} />
+          <div style={{ position: 'absolute', top: '6px', right: '6px', width: '12px', height: '12px', borderTop: '2px solid rgba(10,10,10,0.3)', borderRight: '2px solid rgba(10,10,10,0.3)' }} />
+          <div style={{ position: 'absolute', bottom: '6px', left: '6px', width: '12px', height: '12px', borderBottom: '2px solid rgba(10,10,10,0.3)', borderLeft: '2px solid rgba(10,10,10,0.3)' }} />
+          <div style={{ position: 'absolute', bottom: '6px', right: '6px', width: '12px', height: '12px', borderBottom: '2px solid rgba(10,10,10,0.3)', borderRight: '2px solid rgba(10,10,10,0.3)' }} />
+
+          {/* Top Tape Tag */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span
+              style={{
+                fontFamily: "'Space Mono', monospace",
+                fontSize: '13px',
+                fontWeight: 700,
+                backgroundColor: '#0A0A0A',
+                color: '#00DC82',
+                padding: '4px 10px',
+                borderRadius: '3px',
+                letterSpacing: '0.08em',
+              }}
+            >
+              [ EVIDENCE PHOTO // NETIZEN ARCHIVE ]
+            </span>
+            <span
+              style={{
+                fontFamily: "'Space Mono', monospace",
+                fontSize: '13px',
+                fontWeight: 700,
+                color: '#0A0A0A',
+              }}
+            >
+              FIG. 0{index + 1}
+            </span>
+          </div>
+
+          {/* Photo Frame */}
+          <div
+            style={{
+              flex: 1,
+              width: '100%',
+              borderRadius: '6px',
+              overflow: 'hidden',
+              border: '2px solid #0A0A0A',
+              position: 'relative',
+            }}
+          >
+            <Img
+              src={scene.image}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Halftone Dot Grid Overlay (from ArticleSlide.vue line 99-102) */}
       <div
@@ -273,9 +358,13 @@ const SingleScene: React.FC<{
 
 export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
   const mergedProps = { ...defaultReelProps, ...props };
-  const { title, category, scenes, audioUrl, musicUrl } = mergedProps;
+  const { title, category, scenes, audioUrl, musicUrl, backgroundVideo } = mergedProps;
   const { fps, durationInFrames } = useVideoConfig();
   const frame = useCurrentFrame();
+
+  const bgVideoSrc = backgroundVideo
+    ? (backgroundVideo.startsWith('http') ? backgroundVideo : staticFile(backgroundVideo))
+    : null;
 
   // Calculate sequence offsets
   let accumulatedFrames = 0;
@@ -338,6 +427,22 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
       {musicUrl && <Audio src={musicUrl} volume={0.25} />}
       {audioUrl && <Audio src={audioUrl} volume={1.0} />}
 
+      {/* Dynamic Moving Background Video (Fancam / Stage / Trailer) */}
+      {bgVideoSrc && (
+        <OffthreadVideo
+          src={bgVideoSrc}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '1080px',
+            height: '1920px',
+            objectFit: 'cover',
+            filter: 'contrast(1.08) brightness(0.68) saturate(1.15)',
+          }}
+          muted
+        />
+      )}
+
       {/* Render Scenes sequentially */}
       {sceneItems.map((item) => (
         <Sequence
@@ -350,6 +455,7 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
             sceneDurationFrames={item.durationInFrames}
             index={item.index}
             totalScenes={scenes.length}
+            hasGlobalBgVideo={Boolean(bgVideoSrc)}
           />
         </Sequence>
       ))}
