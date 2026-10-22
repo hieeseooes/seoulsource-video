@@ -439,7 +439,15 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
             objectFit: 'cover',
             filter: 'contrast(1.08) brightness(0.68) saturate(1.15)',
           }}
-          muted
+          volume={(f) => {
+            const fadeOutDuration = Math.round(fps * 1.5);
+            const fadeStart = durationInFrames - fadeOutDuration;
+            if (f < fadeStart) return 0.7;
+            return interpolate(f, [fadeStart, durationInFrames], [0.7, 0], {
+              extrapolateLeft: 'clamp',
+              extrapolateRight: 'clamp',
+            });
+          }}
         />
       )}
 
