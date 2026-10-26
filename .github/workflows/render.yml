@@ -170,6 +170,13 @@ jobs:
           fi
           cat input-props.json
 
+      - name: Generate Gemini Voiceover (Cloud TTS)
+        id: generate_cloud_tts
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          node scripts/generate_cloud_tts.js || echo "⚠️ Cloud TTS failed, rendering with fallback audio."
+
       - name: Render Video
         run: |
           mkdir -p out

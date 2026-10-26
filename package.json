@@ -1,6 +1,7 @@
 {
   "name": "seoulsource-video",
   "version": "1.0.0",
+  "type": "module",
   "description": "SeoulSource automated video rendering engine using Remotion and GitHub Actions",
   "scripts": {
     "start": "remotion preview",

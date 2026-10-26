@@ -27,6 +27,8 @@ export interface ReelProps {
   audioUrl?: string;
   musicUrl?: string;
   backgroundVideo?: string;
+  voiceoverAudio?: string;
+  voiceoverScript?: string;
 }
 
 export const defaultReelProps: ReelProps = {
@@ -378,13 +380,17 @@ const SingleScene: React.FC<{
 
 export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
   const mergedProps = { ...defaultReelProps, ...props };
-  const { title, category, scenes, audioUrl, musicUrl, backgroundVideo } = mergedProps;
+  const { title, category, scenes, audioUrl, musicUrl, backgroundVideo, voiceoverAudio } = mergedProps;
   const { fps, durationInFrames } = useVideoConfig();
   const frame = useCurrentFrame();
 
   const bgVideoSrc = backgroundVideo
     ? (backgroundVideo.startsWith('http') ? backgroundVideo : staticFile(backgroundVideo))
     : null;
+
+  const voiceoverSrc = voiceoverAudio
+    ? (voiceoverAudio.startsWith('http') ? voiceoverAudio : staticFile(voiceoverAudio))
+    : (audioUrl ? (audioUrl.startsWith('http') ? audioUrl : staticFile(audioUrl)) : null);
 
   // Calculate sequence offsets
   let accumulatedFrames = 0;
@@ -443,9 +449,9 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
         }
       `}</style>
 
-      {/* Optional Audio Layers */}
-      {musicUrl && <Audio src={musicUrl} volume={0.25} />}
-      {audioUrl && <Audio src={audioUrl} volume={1.0} />}
+      {/* Optional Audio Layers & Voiceover */}
+      {voiceoverSrc && <Audio src={voiceoverSrc} volume={1.15} />}
+      {musicUrl && <Audio src={musicUrl} volume={voiceoverSrc ? 0.20 : 0.35} />}
 
       {/* Dynamic Moving Background Video (Fancam / Stage / Trailer) */}
       {bgVideoSrc && (
@@ -460,10 +466,11 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
             filter: 'contrast(1.08) brightness(0.68) saturate(1.15)',
           }}
           volume={(f) => {
+            const baseVol = voiceoverSrc ? 0.32 : 0.70;
             const fadeOutDuration = Math.round(fps * 1.5);
             const fadeStart = durationInFrames - fadeOutDuration;
-            if (f < fadeStart) return 0.7;
-            return interpolate(f, [fadeStart, durationInFrames], [0.7, 0], {
+            if (f < fadeStart) return baseVol;
+            return interpolate(f, [fadeStart, durationInFrames], [baseVol, 0], {
               extrapolateLeft: 'clamp',
               extrapolateRight: 'clamp',
             });
