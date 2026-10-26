@@ -449,9 +449,9 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
         }
       `}</style>
 
-      {/* Optional Audio Layers & Voiceover */}
-      {voiceoverSrc && <Audio src={voiceoverSrc} volume={1.15} />}
-      {musicUrl && <Audio src={musicUrl} volume={voiceoverSrc ? 0.20 : 0.35} />}
+      {/* Optional Audio Layers & Voiceover (35% BGM / 65% TTS) */}
+      {voiceoverSrc && <Audio src={voiceoverSrc} volume={0.65} />}
+      {musicUrl && <Audio src={musicUrl} volume={voiceoverSrc ? 0.15 : 0.35} />}
 
       {/* Dynamic Moving Background Video (Fancam / Stage / Trailer) */}
       {bgVideoSrc && (
@@ -466,7 +466,7 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
             filter: 'contrast(1.08) brightness(0.68) saturate(1.15)',
           }}
           volume={(f) => {
-            const baseVol = voiceoverSrc ? 0.32 : 0.70;
+            const baseVol = voiceoverSrc ? 0.35 : 0.70;
             const fadeOutDuration = Math.round(fps * 1.5);
             const fadeStart = durationInFrames - fadeOutDuration;
             if (f < fadeStart) return baseVol;
