@@ -114,12 +114,14 @@ jobs:
               $COOKIE_ARGS \
               $POT_ARGS \
               $JS_ARGS \
+              -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best" \
               --force-overwrites \
               -o "public/bg_video.mp4" \
               "$DIRECT_URL" || \
             yt-dlp \
               $POT_ARGS \
               $JS_ARGS \
+              -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best" \
               --force-overwrites \
               -o "public/bg_video.mp4" \
               "$DIRECT_URL" || echo "Direct URL download failed, continuing without background video."
@@ -129,6 +131,7 @@ jobs:
               $COOKIE_ARGS \
               $POT_ARGS \
               $JS_ARGS \
+              -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best" \
               --default-search "ytsearch" \
               --merge-output-format mp4 \
               --force-overwrites \
@@ -137,6 +140,7 @@ jobs:
             yt-dlp -v \
               $POT_ARGS \
               $JS_ARGS \
+              -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best" \
               --default-search "ytsearch" \
               --merge-output-format mp4 \
               --force-overwrites \
@@ -145,6 +149,8 @@ jobs:
           fi
 
           if [ -f "public/bg_video.mp4" ]; then
+            echo "⚡ Optimizing bg_video with faststart..."
+            ffmpeg -y -i public/bg_video.mp4 -c copy -movflags +faststart public/bg_video_fast.mp4 && mv public/bg_video_fast.mp4 public/bg_video.mp4 || true
             echo "✅ Background video siap: $(ls -lh public/bg_video.mp4)"
             echo "has_bg_video=true" >> $GITHUB_OUTPUT
           else
@@ -183,7 +189,7 @@ jobs:
           COMP_NAME="${{ github.event.inputs.composition || 'SeoulSourceReel' }}"
           OUT_NAME="${{ github.event.inputs.output_name || 'seoulsource_video' }}"
           echo "Rendering $COMP_NAME to out/${OUT_NAME}.mp4..."
-          npx remotion render "$COMP_NAME" "out/${OUT_NAME}.mp4" --props="./input-props.json" --gl=angle --concurrency=2
+          npx remotion render "$COMP_NAME" "out/${OUT_NAME}.mp4" --props="./input-props.json" --gl=angle --concurrency=2 --timeout=120000
 
       - name: Upload Video Artifact
         uses: actions/upload-artifact@v4
