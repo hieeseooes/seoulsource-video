@@ -57,16 +57,35 @@ export const defaultReelProps: ReelProps = {
   ],
 };
 
-// Helper: Format subtext quotes with ArticleSlide styling
+// Helper: Auto-scale font size adapted from useAutoScaleText in Vue image editor
+const getAutoScaleFontSize = (
+  text: string = '',
+  maxFontSize: number,
+  minFontSize: number,
+  baseLengthThreshold: number = 30,
+  stepFactor: number = 0.20
+): number => {
+  if (!text) return maxFontSize;
+  const len = text.trim().length;
+  if (len <= baseLengthThreshold) return maxFontSize;
+  const excess = len - baseLengthThreshold;
+  const calculated = Math.round(maxFontSize - excess * stepFactor);
+  return Math.max(minFontSize, Math.min(maxFontSize, calculated));
+};
+
+// Helper: Format subtext quotes with ArticleSlide styling and auto-scaled font
 const renderArticleSubtext = (text?: string) => {
   if (!text) return null;
+  const subtextSize = getAutoScaleFontSize(text, 24, 17, 70, 0.08);
+  const quoteSize = Math.max(16, subtextSize - 2);
+
   if (text.includes('"')) {
     const parts = text.split(/(".*?")/g);
     return (
       <div
         style={{
           fontFamily: "'Inter', sans-serif",
-          fontSize: '24px',
+          fontSize: `${subtextSize}px`,
           fontWeight: 600,
           lineHeight: 1.45,
           color: '#1a1a1a',
@@ -85,7 +104,7 @@ const renderArticleSubtext = (text?: string) => {
                 borderRadius: '4px',
                 fontFamily: "'Space Mono', monospace",
                 fontWeight: 700,
-                fontSize: '22px',
+                fontSize: `${quoteSize}px`,
                 letterSpacing: '0.04em',
                 textTransform: 'uppercase',
                 margin: '2px 0',
@@ -106,9 +125,9 @@ const renderArticleSubtext = (text?: string) => {
     <div
       style={{
         fontFamily: "'Inter', sans-serif",
-        fontSize: '23px',
+        fontSize: `${subtextSize}px`,
         fontWeight: 500,
-        lineHeight: 1.5,
+        lineHeight: 1.48,
         color: '#2a2a2a',
         marginTop: '6px',
       }}
@@ -353,12 +372,12 @@ const SingleScene: React.FC<{
           <div style={{ position: 'absolute', bottom: '8px', left: '8px', width: '12px', height: '12px', borderBottom: '2px solid rgba(10,10,10,0.3)', borderLeft: '2px solid rgba(10,10,10,0.3)' }} />
           <div style={{ position: 'absolute', bottom: '8px', right: '8px', width: '12px', height: '12px', borderBottom: '2px solid rgba(10,10,10,0.3)', borderRight: '2px solid rgba(10,10,10,0.3)' }} />
 
-          {/* Main Caption */}
+          {/* Main Caption with AutoScale */}
           {scene.caption && (
             <div
               style={{
                 fontFamily: "'Cabinet Grotesk', sans-serif",
-                fontSize: '34px',
+                fontSize: `${getAutoScaleFontSize(scene.caption, 34, 22, 35, 0.22)}px`,
                 fontWeight: 900,
                 lineHeight: 1.22,
                 color: '#0A0A0A',
@@ -449,9 +468,9 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
         }
       `}</style>
 
-      {/* Optional Audio Layers & Voiceover (35% BGM / 90% TTS) */}
+      {/* Optional Audio Layers & Voiceover (25% BGM / 90% TTS) */}
       {voiceoverSrc && <Audio src={voiceoverSrc} volume={0.90} />}
-      {musicUrl && <Audio src={musicUrl} volume={voiceoverSrc ? 0.15 : 0.35} />}
+      {musicUrl && <Audio src={musicUrl} volume={voiceoverSrc ? 0.12 : 0.25} />}
 
       {/* Dynamic Moving Background Video (Fancam / Stage / Trailer) */}
       {bgVideoSrc && (
@@ -466,7 +485,7 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
             filter: 'contrast(1.08) brightness(0.68) saturate(1.15)',
           }}
           volume={(f) => {
-            const baseVol = voiceoverSrc ? 0.35 : 0.70;
+            const baseVol = voiceoverSrc ? 0.25 : 0.70;
             const fadeOutDuration = Math.round(fps * 1.5);
             const fadeStart = durationInFrames - fadeOutDuration;
             if (f < fadeStart) return baseVol;
@@ -680,7 +699,7 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
           <div
             style={{
               fontFamily: "'Cabinet Grotesk', sans-serif",
-              fontSize: '44px',
+              fontSize: `${getAutoScaleFontSize(title, 44, 26, 30, 0.20)}px`,
               fontWeight: 900,
               lineHeight: 1.12,
               letterSpacing: '-0.02em',

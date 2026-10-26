@@ -107,9 +107,9 @@ async function main() {
           const pcmBuf = Buffer.from(inlineData.data, "base64");
           fs.writeFileSync(tempPcmPath, pcmBuf);
 
-          // Convert raw 24kHz PCM mono to standard WAV (natural gain, zero distortion)
+          // Convert raw 24kHz PCM mono to standard WAV (atempo=0.90 memperlambat tempo ~10% / +3-4s agar lebih santai)
           execSync(
-            `ffmpeg -y -f s16le -ar 24000 -ac 1 -i "${tempPcmPath}" "${outputPath}"`,
+            `ffmpeg -y -f s16le -ar 24000 -ac 1 -i "${tempPcmPath}" -filter:a "atempo=0.90" "${outputPath}"`,
             { stdio: "ignore" }
           );
 
