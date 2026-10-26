@@ -449,8 +449,8 @@ export const SeoulSourceReel: React.FC<ReelProps> = (props) => {
         }
       `}</style>
 
-      {/* Optional Audio Layers & Voiceover (35% BGM / 65% TTS) */}
-      {voiceoverSrc && <Audio src={voiceoverSrc} volume={0.65} />}
+      {/* Optional Audio Layers & Voiceover (35% BGM / 90% TTS) */}
+      {voiceoverSrc && <Audio src={voiceoverSrc} volume={0.90} />}
       {musicUrl && <Audio src={musicUrl} volume={voiceoverSrc ? 0.15 : 0.35} />}
 
       {/* Dynamic Moving Background Video (Fancam / Stage / Trailer) */}

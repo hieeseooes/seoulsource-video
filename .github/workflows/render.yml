@@ -165,10 +165,11 @@ jobs:
 
       - name: Prepare Props JSON
         id: prepare_props
+        env:
+          PROPS_INPUT: ${{ github.event.inputs.props }}
         run: |
-          PROPS_INPUT='${{ github.event.inputs.props }}'
           if [ -n "$PROPS_INPUT" ]; then
-            echo "$PROPS_INPUT" > input-props.json
+            printf "%s" "$PROPS_INPUT" > input-props.json
             echo "Used props from workflow dispatch input."
           else
             cp props.json input-props.json
