@@ -134,6 +134,24 @@ const SingleScene: React.FC<{
     extrapolateRight: 'clamp',
   });
 
+  // Dynamic Pan & Scan for Photo inside the Polaroid Frame
+  // Scene Ganjil: Pan Vertikal (Atas ke Bawah) - Ideal untuk foto portrait agar wajah dan baju terlihat utuh
+  // Scene Genap: Pan Horizontal (Kiri ke Kanan) - Bagus untuk foto grup/stage
+  const photoPanY = interpolate(frame, [0, sceneDurationFrames], [-8, 8], {
+    extrapolateRight: 'clamp',
+  });
+  const photoPanX = interpolate(frame, [0, sceneDurationFrames], [-6, 6], {
+    extrapolateRight: 'clamp',
+  });
+  const photoZoom = interpolate(frame, [0, sceneDurationFrames], [1.16, 1.22], {
+    extrapolateRight: 'clamp',
+  });
+
+  const photoTransform =
+    index % 2 === 0
+      ? `scale(${photoZoom}) translateY(${photoPanY}%)`
+      : `scale(${photoZoom}) translateX(${photoPanX}%)`;
+
   // Snappy Bouncy Pop-In Animation (Sticker slap overshoot!)
   const popSpring = spring({
     frame,
@@ -244,6 +262,8 @@ const SingleScene: React.FC<{
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
+                transform: photoTransform,
+                transformOrigin: 'center center',
               }}
             />
           </div>
