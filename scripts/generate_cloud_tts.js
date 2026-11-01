@@ -56,14 +56,20 @@ async function main() {
     fs.mkdirSync(publicDir, { recursive: true });
   }
 
-  const voiceName = props.voiceName || "Kore";
+  const voiceName = props.voiceName || "Zephyr";
   const outputPath = path.join(publicDir, "voiceover.wav");
   const tempPcmPath = path.join(publicDir, "temp_tts.pcm");
 
+  // Director-Style Prompting Opsi 3 (Casual and composed news narrator)
+  const directedSpeechText = `[Audio Profile: Casual and composed Indonesian news narrator. Smooth cadence, clear articulation, friendly and neutral demeanor.]
+[Director's Notes: Conversational delivery, steady rhythm, moderate pace, calm and pleasant.]
+
+${cleanText}`;
+
   const models = [
     "gemini-2.5-flash-preview-tts",
-    "gemini-3.1-flash-tts",
     "gemini-3.8-flash-tts",
+    "gemini-3.1-flash-tts",
     "gemini-3.8-flash-lite-tts",
   ];
 
@@ -76,7 +82,7 @@ async function main() {
 
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
       const payload = {
-        contents: [{ parts: [{ text: cleanText }] }],
+        contents: [{ parts: [{ text: directedSpeechText }] }],
         generationConfig: {
           responseModalities: ["AUDIO"],
           speechConfig: {
