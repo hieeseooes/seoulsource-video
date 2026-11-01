@@ -181,13 +181,14 @@ const SingleScene: React.FC<{
   });
 
   const stickerScale = interpolate(popSpring, [0, 1], [0.85, 1]);
+  const stickerOpacity = interpolate(popSpring, [0, 1], [0, 1]);
 
   // Waktu tampil foto dibatasi: hanya muncul selama ~2.8 detik (84 frame), lalu meluncur dan memudar keluar!
   const photoVisibleFrames = Math.min(Math.round(fps * 2.8), Math.round(sceneDurationFrames * 0.55));
   const photoExitFrames = 14;
   const photoExitStart = Math.max(1, photoVisibleFrames - photoExitFrames);
 
-  const timedOpacity = interpolate(
+  const timedPhotoOpacity = interpolate(
     frame,
     [0, 8, photoExitStart, photoVisibleFrames],
     [0, 1, 1, 0],
@@ -202,7 +203,8 @@ const SingleScene: React.FC<{
   );
 
   // Subtle breathing float on sticker card
-  const floatY = Math.sin(frame / 10) * 3 + exitSlideY;
+  const floatY = Math.sin(frame / 10) * 3;
+  const photoFloatY = floatY + exitSlideY;
 
   return (
     <AbsoluteFill style={{ overflow: 'hidden', backgroundColor: hasGlobalBgVideo ? 'transparent' : '#0A0A0A' }}>
@@ -245,8 +247,8 @@ const SingleScene: React.FC<{
             display: 'flex',
             flexDirection: 'column',
             gap: '10px',
-            transform: `scale(${stickerScale}) translateY(${floatY}px) rotate(-1.2deg)`,
-            opacity: timedOpacity,
+            transform: `scale(${stickerScale}) translateY(${photoFloatY}px) rotate(-1.2deg)`,
+            opacity: timedPhotoOpacity,
             zIndex: 35,
           }}
         >
